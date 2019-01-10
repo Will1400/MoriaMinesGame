@@ -1,0 +1,7 @@
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\bin\Debug\MoriaMines.exe.config
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\bin\Debug\MoriaMines.exe
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\bin\Debug\MoriaMines.pdb
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\obj\Debug\MoriaMines.csprojAssemblyReference.cache
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\obj\Debug\MoriaMines.csproj.CoreCompileInputs.cache
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\obj\Debug\MoriaMines.exe
+C:\Users\will1400\source\repos\MoriaMinesGame\MoriaMines\obj\Debug\MoriaMines.pdb

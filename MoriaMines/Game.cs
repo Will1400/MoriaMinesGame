@@ -24,6 +24,10 @@ namespace MoriaMines
 
         public Game(string gameName)
         {
+            if (File.Exists("HighScores.txt") == false)
+            {
+                File.Create("HighScores.txt");
+            }
             using (StreamReader reader = new StreamReader("HighScores.txt"))
             {
                 string line = "";
@@ -66,7 +70,6 @@ namespace MoriaMines
             get { return rooms; }
             set { rooms = value; }
         }
-
 
         // Create new game
         #region Create New Game
@@ -901,7 +904,7 @@ namespace MoriaMines
             }
             return foundAction;
         }
-        
+
         private int GetScore()
         {
             return int.Parse(Math.Round(player.Health + (player.Gold * 0.5) + (player.Inventory.Count * 2)).ToString());

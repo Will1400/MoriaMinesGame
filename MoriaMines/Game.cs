@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 // Moria Mines
 using MoriaMines.NPCs;
 using MoriaMines.Items;
@@ -17,9 +18,22 @@ namespace MoriaMines
         private string gameName;
         private string currentInput = ""; // used to quit the game
         private bool inCombat = false;
+        private int score;
+        private Dictionary<string, int> highScores = new Dictionary<string, int>();
+
 
         public Game(string gameName)
         {
+            using (StreamReader reader = new StreamReader("HighScores.txt"))
+            {
+                string line = "";
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    highScores.Add(line.Split(':')[0], int.Parse(line.Split(':')[1]));
+                }
+            }
+
             GameName = gameName;
             CreateNewGame();
         }
@@ -30,6 +44,11 @@ namespace MoriaMines
             Rooms = rooms;
         }
 
+        public int HighScore
+        {
+            get { return score; }
+            set { score = value; }
+        }
 
         public string GameName
         {
@@ -77,7 +96,7 @@ namespace MoriaMines
             // Create main rooms
             for (int i = 0; i < mainRooms; i++)
             {
-                main.Add(new Room($"Room: {i + 1}", rnd.Next(1, 50), rnd.Next(0, 10)));
+                main.Add(new Room($"Room: {i + 1}", rnd.Next(1, 50), rnd.Next(0, 2)));
             }
 
             main.Add(new Room("End", 1000, 0));
@@ -552,54 +571,47 @@ namespace MoriaMines
             }
             else
             {
+                bool exists = false;
                 switch (direction)
                 {
                     case "north":
                         if (currentRoom.North != null)
                         {
-                            peekDescription = "You see a room";
-                        }
-                        else
-                        {
-                            peekDescription = "You see a wall";
+                            exists = true;
                         }
                         break;
 
                     case "east":
                         if (currentRoom.East != null)
                         {
-                            peekDescription = "You see a room";
-                        }
-                        else
-                        {
-                            peekDescription = "You see a wall";
+                            exists = true;
                         }
                         break;
 
                     case "south":
                         if (currentRoom.South != null)
                         {
-                            peekDescription = "You see a room";
-                        }
-                        else
-                        {
-                            peekDescription = "You see a wall";
+                            exists = true;
                         }
                         break;
 
                     case "west":
                         if (currentRoom.West != null)
                         {
-                            peekDescription = "You see a room";
-                        }
-                        else
-                        {
-                            peekDescription = "You see a wall";
+                            exists = true;
                         }
                         break;
 
                     default:
                         break;
+                }
+                if (exists)
+                {
+                    peekDescription = "You see a room";
+                }
+                else
+                {
+                    peekDescription = "You see a wall";
                 }
             }
 
@@ -754,7 +766,7 @@ namespace MoriaMines
                     }
                     foundAction = true;
                 }
-                
+
             }
             // Standard input
             if (input == "help")
@@ -863,12 +875,36 @@ namespace MoriaMines
                 }
                 foundAction = true;
             }
+            else if (input == "highscore")
+            {
+                Console.WriteLine($"Your score: {GetScore()}");
+                Console.WriteLine();
+                Console.WriteLine("Highscores");
+                Console.WriteLine();
+
+                List<KeyValuePair<string, int>> list = highScores.ToList();
+
+                list.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+
+                foreach (KeyValuePair<string, int> pair in list)
+                {
+                    Console.WriteLine($"{pair.Key} : {pair.Value}");
+                }
+                PressToContinue();
+
+                foundAction = true;
+            }
 
             if (foundAction == false)
             {
                 Console.WriteLine("Invalid command");
             }
             return foundAction;
+        }
+        
+        private int GetScore()
+        {
+            return int.Parse(Math.Round(player.Health + (player.Gold * 0.5) + (player.Inventory.Count * 2)).ToString());
         }
         #endregion
 
@@ -1090,10 +1126,7 @@ namespace MoriaMines
             }
             else
             {
-                if (PlayerAction(input, out bool ignorMe) == false)
-                {
-                    Console.WriteLine("Invalid action");
-                }
+                PlayerAction(input, out bool ignoreMe);
                 extraTurn = true;
                 Thread.Sleep(600);
             }
@@ -1145,17 +1178,20 @@ namespace MoriaMines
         // EndScreen
         private void EndScreen(string state)
         {
-
+            score = GetScore();
             if (state == "won")
             {
                 Console.Clear();
                 Console.WriteLine("You Won!");
                 Console.WriteLine();
+                score += 100;
             }
             else if (state == "dead")
             {
                 Console.Clear();
                 Console.WriteLine("You Died!");
+                score -= 50;
+
             }
             else
             {
@@ -1164,10 +1200,16 @@ namespace MoriaMines
                 Console.WriteLine();
             }
 
+            using (StreamWriter writer = new StreamWriter("HighScores.txt", true))
+            {
+                writer.WriteLine($"{player.Name} : {score}");
+            }
+
             Console.WriteLine("Character statistics");
             Console.WriteLine();
             Console.WriteLine($"Name: {player.Name}");
             Console.WriteLine();
+            Console.WriteLine($"Score: {score}");
             Console.WriteLine($"Health: {player.Health}");
             Console.WriteLine($"Gold: {player.Gold}");
             Console.WriteLine($"Rooms visited: {player.RoomsVisited}");
@@ -1186,6 +1228,8 @@ namespace MoriaMines
             Console.WriteLine();
             Console.WriteLine("-Health | Displays health");
             Console.WriteLine("-Gold | Displays current gold");
+            Console.WriteLine("-HighScore | Displays your score and all highscores");
+            Console.WriteLine();
             Console.WriteLine("-Peek (direction) | See what is in the direction");
             Console.WriteLine("-Use (Item name) | Equip and use item");
             Console.WriteLine("-Search | Search the room for hidden items");

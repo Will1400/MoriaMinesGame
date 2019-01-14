@@ -9,13 +9,9 @@ namespace MoriaMines
 {
     class Program
     {
-        public static Random rnd = new Random();
         static void Main(string[] args)
         {
             Game game = new Game("Game");
         }
-
-        
-
     }
 }

@@ -90,7 +90,7 @@ namespace MoriaMines
         public Item GetItemByNum(int num)
         {
             Item item;
-            if (num <= inventory.Count)
+            if (num > 0 && num <= inventory.Count)
             {
                 item = inventory[num - 1];
             }
@@ -116,9 +116,9 @@ namespace MoriaMines
         public int TakeDamage(int damage)
         {
             int damageTaken = damage - armor;
-            if (damage.ToString()[0] == '-')
+            if (damageTaken.ToString()[0] == '-')
             {
-                damageTaken = int.Parse(damageTaken.ToString().Substring(1));
+                damageTaken = 0;
             }
             return damageTaken;
         }

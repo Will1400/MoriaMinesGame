@@ -48,13 +48,6 @@ namespace MoriaMines
             set { rooms = value; }
         }
 
-        private void PressToContinue()
-        {
-            Console.WriteLine();
-            Console.WriteLine("Press a key to continue");
-            Console.ReadKey();
-        }
-
 
         // Create new game
         #region Create New Game
@@ -171,11 +164,10 @@ namespace MoriaMines
                     {
                         Room mainRoom = main[i];
 
-                        // Add rooms
-
                         // Randomize lenght
                         sidePathLenght = rnd.Next(sidePathLenght - 1, sidePathLenght + 1);
 
+                        // Add rooms
                         for (int s = 0; s < sidePathLenght; s++)
                         {
                             sideRooms.Add(new Room("Hallway", rnd.Next(1, 50), rnd.Next(1, 10)));
@@ -239,7 +231,7 @@ namespace MoriaMines
                                         // Link to random room
                                         for (int r = 0; r < 20; r++)
                                         {
-                                            Room rndRoom = rooms[rnd.Next(1, rooms.Count)];
+                                            Room rndRoom = main[rnd.Next(1, rooms.Count)];
                                             if (rndRoom.North == null)
                                             {
                                                 if (currentSideRoom.South == null)
@@ -307,7 +299,6 @@ namespace MoriaMines
 
             Armor armor = new Armor(rnd.Next(5, 10), 1, false, "Protects you from some damage", "Armor");
             #endregion
-            player.Inventory.Add(rustySword);
             // Add items to rooms
             for (int i = 0; i < rooms.Count - 1; i++)
             {
@@ -322,6 +313,10 @@ namespace MoriaMines
                         {
                             case 0:
                                 currentRoom.Item = rustySword;
+                                if (currentRoom.Item is Sword sword)
+                                {
+                                    sword.Damage = rnd.Next(2, 10);
+                                }
                                 break;
                             case 1:
                                 if (rnd.Next(1, 11) == 10)
@@ -361,7 +356,6 @@ namespace MoriaMines
             {
                 if (i <= 2)
                 {
-
                 }
                 else
                 {
@@ -369,7 +363,7 @@ namespace MoriaMines
                     Room current = rooms[i];
                     if (rnd.Next(0, 4) == 0)
                     {
-                        Monster monster = new Monster(type[rnd.Next(0, type.Count)], rnd.Next(1, 200), rnd.Next(3, 30), "Head");
+                        Monster monster = new Monster(type[rnd.Next(0, type.Count)], rnd.Next(1, 140), rnd.Next(3, 25), "Head");
                         if (monster.Name == "Dragon")
                         {
                             monster.AddAttack("Hit you with it's tail", 46);
@@ -413,7 +407,7 @@ namespace MoriaMines
         private void AddPlayer(Player existingPlayer = null)
         {
             Console.WriteLine("Choose character name");
-            Player newPlayer = new Player(100, rooms[0], Console.ReadLine(), 10);
+            Player newPlayer = new Player(100, rooms[0], GetPlayerInput(), 10);
 
             if (existingPlayer == null)
             {
@@ -459,10 +453,11 @@ namespace MoriaMines
             // Room Item
             if (player.Currentroom.Item != null)
             {
-                if (player.Currentroom.Item.Hidden != true)
+                if (player.Currentroom.Item.Hidden == false)
                 {
                     player.Inventory.Add(player.Currentroom.Item);
                     Console.WriteLine($"You found {player.Currentroom.Item.Name}");
+                    player.Currentroom.Item = null;
                 }
             }
             // Room Gold
@@ -497,7 +492,7 @@ namespace MoriaMines
             {
                 Console.WriteLine();
                 Console.WriteLine("Were do you go now?");
-                string input = Console.ReadLine().ToLower();
+                string input = GetPlayerInput();
 
                 if (PlayerAction(input, out bool next))
                 {
@@ -506,15 +501,20 @@ namespace MoriaMines
                         nextTurn = true;
                     }
                 }
-                else
-                {
-                }
             }
         }
         #endregion
 
         // Base Game logic
         #region Base Game logic
+
+        private void PressToContinue()
+        {
+            Console.WriteLine();
+            Console.WriteLine("Press a key to continue");
+            Console.ReadKey();
+        }
+
         private bool IsDirection(string input)
         {
             bool isDirection = false;
@@ -605,6 +605,7 @@ namespace MoriaMines
 
             return peekDescription;
         }
+
         private bool MoveRoom(string direction)
         {
             bool succes = false;
@@ -621,8 +622,7 @@ namespace MoriaMines
                         }
                         else
                         {
-                            Console.WriteLine("You were in such a hurry that you walked right into a wall! (-1 health)");
-                            player.Health -= 1;
+                            Console.WriteLine("You don't see a room that way.");
                         }
                         break;
 
@@ -634,8 +634,7 @@ namespace MoriaMines
                         }
                         else
                         {
-                            Console.WriteLine("You were in such a hurry that you walked right into a wall! (-1 health)");
-                            player.Health -= 1;
+                            Console.WriteLine("You don't see a room that way.");
                         }
                         break;
 
@@ -647,8 +646,7 @@ namespace MoriaMines
                         }
                         else
                         {
-                            Console.WriteLine("You were in such a hurry that you walked right into a wall! (-1 health)");
-                            player.Health -= 1;
+                            Console.WriteLine("You don't see a room that way.");
                         }
                         break;
 
@@ -660,8 +658,7 @@ namespace MoriaMines
                         }
                         else
                         {
-                            Console.WriteLine("You were in such a hurry that you walked right into a wall! (-1 health)");
-                            player.Health -= 1;
+                            Console.WriteLine("You don't see a room that way.");
                         }
                         break;
 
@@ -688,14 +685,18 @@ namespace MoriaMines
             PressToContinue();
         }
 
+        private string GetPlayerInput()
+        {
+            string input = Console.ReadLine().ToLower();
+            currentInput = input;
+            return input;
+        }
+
         private bool PlayerAction(string input, out bool nextTurn)
         {
             bool foundAction = false;
             nextTurn = false;
-            if (inCombat)
-            {
-            }
-            else
+            if (inCombat == false)
             {
                 if (IsDirection(input))
                 {
@@ -704,8 +705,8 @@ namespace MoriaMines
                         Console.WriteLine("You found a room!");
                         player.RoomsVisited += 1;
                         nextTurn = true;
-                        foundAction = true;
                     }
+                    foundAction = true;
                 }
                 else if (input == "search" || input == "attack")
                 {
@@ -725,7 +726,7 @@ namespace MoriaMines
                         case "attack":
                             if (player.Currentroom.NPC != null)
                             {
-                                InitiateCombat(0, player.Currentroom.NPC);
+                                string result = InitiateCombat(0, player.Currentroom.NPC);
                                 nextTurn = true;
                             }
                             else
@@ -753,12 +754,9 @@ namespace MoriaMines
                     }
                     foundAction = true;
                 }
-                else
-                {
-                    Console.WriteLine("Invalid command");
-                }
+                
             }
-
+            // Standard input
             if (input == "help")
             {
                 GetHelp();
@@ -800,15 +798,16 @@ namespace MoriaMines
                     {
                         // Use item
                         Item usedItem = player.GetItemByNum(int.Parse(input.Substring(4)));
-                        player.EquippedItem = usedItem;
                         if (usedItem is Flashlight flashlight)
                         {
                             flashlight.Charge -= 5;
+                            player.EquippedItem = usedItem;
                             Console.WriteLine("You took out your flashlight");
                         }
                         else if (usedItem is Sword sword)
                         {
                             sword.Durability -= 5;
+                            player.EquippedItem = usedItem;
                             Console.WriteLine("You took out you your sword");
                         }
                         else if (usedItem is Armor armor)
@@ -839,9 +838,11 @@ namespace MoriaMines
             }
             else if (input.Length > 5 && input.Substring(0, 5) == "equip")
             {
-                if (int.TryParse(input.Substring(6), out int num) && player.Inventory.Count >= num && player.Inventory[num - 1] != null)
+                int.TryParse(input.Substring(6), out int num);
+                if (player.GetItemByNum(num) != null)
                 {
-                    Item usedItem = player.Inventory[int.Parse(input.Substring(6)) - 1];
+
+                    Item usedItem = player.GetItemByNum(num);
                     if (usedItem is Armor armor)
                     {
                         player.Armor += armor.ArmorValue;
@@ -863,7 +864,10 @@ namespace MoriaMines
                 foundAction = true;
             }
 
-
+            if (foundAction == false)
+            {
+                Console.WriteLine("Invalid command");
+            }
             return foundAction;
         }
         #endregion
@@ -873,11 +877,21 @@ namespace MoriaMines
 
         private string InitiateCombat(int initiator = 0, NPC Monster = null)
         {
+            inCombat = true;
             if (Monster == null)
             {
                 Monster = player.Currentroom.NPC;
             }
-            return RunCombat(initiator, Monster);
+            if (initiator == 1)
+            {
+                Console.Clear();
+                Console.WriteLine($"You got seen.");
+                PressToContinue();
+            }
+
+            string result = RunCombat(initiator, Monster);
+            inCombat = false;
+            return result;
         }
 
         private string RunCombat(int initiator, NPC monster)
@@ -955,6 +969,7 @@ namespace MoriaMines
             }
             if (player.Health < 0)
             {
+                inCombat = false;
                 return "player dead";
             }
             else if (monster.Health < 0)
@@ -963,8 +978,10 @@ namespace MoriaMines
                 if (monster is Monster monsterDrop)
                 {
                     Console.WriteLine($"{monster.Name} defeated");
+                    Console.WriteLine();
                     List<Item> drops = new List<Item>(monsterDrop.DropItems(rnd.Next(1, 5)));
                     Console.WriteLine($"The {monster.Name} dropped");
+                    Console.WriteLine();
                     foreach (Item item in drops)
                     {
                         player.Inventory.Add(item);
@@ -973,9 +990,11 @@ namespace MoriaMines
                     monsterDrop.CurrentRoom.NPC = null;
                     Thread.Sleep(1000);
                 }
+                inCombat = false;
                 return "monster dead";
             }
 
+            inCombat = false;
             return "";
         }
 
@@ -1036,7 +1055,7 @@ namespace MoriaMines
             Console.WriteLine();
             Console.WriteLine("What do you do?");
             #endregion
-            string input = Console.ReadLine().ToLower();
+            string input = GetPlayerInput();
 
             if (input == "attack")
             {
@@ -1073,9 +1092,9 @@ namespace MoriaMines
             {
                 if (PlayerAction(input, out bool ignorMe) == false)
                 {
-                    extraTurn = true;
                     Console.WriteLine("Invalid action");
                 }
+                extraTurn = true;
                 Thread.Sleep(600);
             }
             return damage;

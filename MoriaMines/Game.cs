@@ -34,7 +34,7 @@ namespace MoriaMines
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    highScores.Add(new List<string>() {line.Split(':')[0], line.Split(':')[1] });
+                    highScores.Add(new List<string>() { line.Split(':')[0], line.Split(':')[1] });
                 }
             }
 
@@ -128,7 +128,7 @@ namespace MoriaMines
                     default:
                         if (int.TryParse(input.Split(' ')[0], out main))
                         {
-                            if (int.TryParse(input.Split(' ')[1], out side))
+                            if (input.Split(' ').Count() > 1 && int.TryParse(input.Split(' ')[1], out side))
                             {
                                 return;
                             }

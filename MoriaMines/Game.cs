@@ -19,7 +19,7 @@ namespace MoriaMines
         private string currentInput = ""; // used to quit the game
         private bool inCombat = false;
         private int score;
-        private Dictionary<string, int> highScores = new Dictionary<string, int>();
+        private List<List<string>> highScores = new List<List<string>>();
 
 
         public Game(string gameName)
@@ -34,7 +34,7 @@ namespace MoriaMines
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    highScores.Add(line.Split(':')[0], int.Parse(line.Split(':')[1]));
+                    highScores.Add(new List<string>() {line.Split(':')[0], line.Split(':')[1] });
                 }
             }
 
@@ -938,14 +938,31 @@ namespace MoriaMines
                 Console.WriteLine("Highscores");
                 Console.WriteLine();
 
-                List<KeyValuePair<string, int>> list = highScores.ToList();
-
-                list.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
-
-                foreach (KeyValuePair<string, int> pair in list)
+                List<int> scoreNumbers = new List<int>();
+                foreach (var score in highScores)
                 {
-                    Console.WriteLine($"{pair.Key} : {pair.Value}");
+                    scoreNumbers.Add(int.Parse(score[1]));
                 }
+
+                scoreNumbers.Sort();
+                scoreNumbers.Reverse();
+                List<List<string>> sortedScores = new List<List<string>>();
+                foreach (int scoreNum in scoreNumbers)
+                {
+                    foreach (List<string> score in highScores)
+                    {
+                        if (scoreNum == int.Parse(score[1]))
+                        {
+                            sortedScores.Add(score);
+                        }
+                    }
+                }
+                foreach (var score in sortedScores)
+                {
+                    Console.WriteLine($"{score[0]} : {score[1]}");
+                }
+                highScores = sortedScores;
+
                 PressToContinue();
 
                 foundAction = true;
@@ -953,7 +970,8 @@ namespace MoriaMines
 
             if (foundAction == false)
             {
-                Console.WriteLine("Invalid command");
+                Console.WriteLine("Not a command");
+                Console.WriteLine("use 'help' to see all commands");
             }
             return foundAction;
         }

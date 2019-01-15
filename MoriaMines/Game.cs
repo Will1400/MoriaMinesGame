@@ -21,7 +21,6 @@ namespace MoriaMines
         private int score;
         private List<List<string>> highScores = new List<List<string>>();
 
-
         public Game(string gameName)
         {
             if (File.Exists("HighScores.txt") == false)
@@ -40,12 +39,6 @@ namespace MoriaMines
 
             GameName = gameName;
             CreateNewGame();
-        }
-
-        public int HighScore
-        {
-            get { return score; }
-            set { score = value; }
         }
 
         public string GameName
@@ -507,7 +500,6 @@ namespace MoriaMines
         }
         private void Turn()
         {
-            bool nextTurn = false;
             Console.Clear();
             // Room Description
             Console.WriteLine(player.Currentroom.Description);
@@ -535,11 +527,7 @@ namespace MoriaMines
                 if (rnd.Next(0, 3) == 0)
                 {
                     string result = InitiateCombat(1, player.Currentroom.NPC);
-                    if (result == "player fled" || result == "monster fled")
-                    {
-                        Console.Clear();
-                        Console.WriteLine(player.Currentroom.Description);
-                    }
+                    return;
                 }
                 else
                 {
@@ -550,7 +538,7 @@ namespace MoriaMines
             Thread.Sleep(100);
 
             // Player actions
-            while (!nextTurn && player.Health > 0)
+            while (player.Health > 0)
             {
                 Console.WriteLine();
                 Console.WriteLine("Were do you go now?");
@@ -560,7 +548,7 @@ namespace MoriaMines
                 {
                     if (next)
                     {
-                        nextTurn = true;
+                        break;
                     }
                 }
             }
@@ -978,7 +966,7 @@ namespace MoriaMines
 
         private int GetScore()
         {
-            return int.Parse(Math.Round(player.Health + (player.Gold * 0.5) + (player.Inventory.Count * 2)).ToString());
+            return int.Parse(Math.Round(player.Health + (player.Gold * 0.5) + (player.Inventory.Count * 2) + (rooms.Count * 0.25 - player.RoomsVisited)).ToString());
         }
         #endregion
 
@@ -1098,7 +1086,7 @@ namespace MoriaMines
                         Console.WriteLine($"-{item.Name}");
                     }
                     monsterDrop.CurrentRoom.NPC = null;
-                    Thread.Sleep(1000);
+                    PressToContinue();
                 }
                 inCombat = false;
                 return "monster dead";
@@ -1253,27 +1241,27 @@ namespace MoriaMines
         private void EndScreen(string state)
         {
             score = GetScore();
+            Console.Clear();
             if (state == "won")
             {
-                Console.Clear();
                 Console.WriteLine("You Won!");
-                Console.WriteLine();
                 score += 100;
             }
             else if (state == "dead")
             {
-                Console.Clear();
                 Console.WriteLine("You Died!");
                 score -= 50;
-
             }
             else
             {
-                Console.Clear();
                 Console.WriteLine("Adventure ended.");
-                Console.WriteLine();
             }
+            Console.WriteLine();
 
+            if (score < 0)
+            {
+                score = 0;
+            }
             using (StreamWriter writer = new StreamWriter("HighScores.txt", true))
             {
                 writer.WriteLine($"{player.Name} : {score}");
@@ -1299,7 +1287,7 @@ namespace MoriaMines
 
             Console.WriteLine("These are all the commands in the game");
             Console.WriteLine();
-            Console.WriteLine("-(Direction) | Move around using directions (North, East, South, West)");
+            Console.WriteLine("-(North/West/South/East) | Move around using directions");
             Console.WriteLine();
             Console.WriteLine("-Health | Displays health");
             Console.WriteLine("-Gold | Displays current gold");

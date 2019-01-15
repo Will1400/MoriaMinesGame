@@ -73,7 +73,7 @@ namespace MoriaMines.NPCs
                     item = newFlashlight;
                     break;
                 case 1:
-                    Sword newSword = new Sword(200, 20 + damage, $"{Name}'s sword", $"The mighty {Name}'s sword", false, 4);
+                    Sword newSword = new Sword(200, 5 + damage, $"{Name}'s sword", $"The mighty {Name}'s sword", false, 4);
                     item = newSword;
                     break;
                 case 2:

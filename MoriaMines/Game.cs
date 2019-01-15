@@ -8,7 +8,6 @@ using System.IO;
 // Moria Mines
 using MoriaMines.NPCs;
 using MoriaMines.Items;
-using System.Diagnostics;
 
 namespace MoriaMines
 {
@@ -84,6 +83,8 @@ namespace MoriaMines
             Console.WriteLine("Adding monsters to map success");
             Console.Clear();
             AddPlayer();
+
+            GetHelp();
 
             RunGame();
         }
@@ -439,13 +440,13 @@ namespace MoriaMines
                         {
                             monster.AddAttack("Hit you with it's tail", rnd.Next(40, 50));
                             monster.AddAttack("Roared", 10);
-                            monster.AddAttack("Sat on you", rnd.Next(55,65));
-                            monster.AddAttack("Fired a spike at you", rnd.Next(20,35));
+                            monster.AddAttack("Sat on you", rnd.Next(55, 65));
+                            monster.AddAttack("Fired a spike at you", rnd.Next(20, 35));
                         }
                         else if (monster.Name == "Orc")
                         {
-                            monster.AddAttack("Hit you with it's bat", rnd.Next(19,23));
-                            monster.AddAttack("Head butted you", rnd.Next(20,30));
+                            monster.AddAttack("Hit you with it's bat", rnd.Next(19, 23));
+                            monster.AddAttack("Head butted you", rnd.Next(20, 30));
                             monster.WeaponType = "bat";
                         }
                         else if (monster.Name == "Knight")
@@ -846,57 +847,69 @@ namespace MoriaMines
             else if (input.Length >= 3 && input.Substring(0, 3) == "use")
             {
                 Console.WriteLine();
-                if (input.Length > 4)
+                if (input.Length > 4 && ((int.TryParse(input.Substring(4), out int num) && player.GetItemByNum(num) != null) || player.GetItemByName(input.Substring(4)) != null))
                 {
-                    if (player.GetItemByNum(int.Parse(input.Substring(4))) != null)
+                    Item usedItem;
+                    // Use item
+                    if (player.GetItemByNum(num) != null)
                     {
-                        // Use item
-                        Item usedItem = player.GetItemByNum(int.Parse(input.Substring(4)));
-                        if (usedItem is Flashlight flashlight)
+                        usedItem = player.GetItemByNum(num);
+                    }
+                    else
+                    {
+                        usedItem = player.GetItemByName(input.Substring(4));
+                    }
+                    if (usedItem is Flashlight flashlight)
+                    {
+                        flashlight.Charge -= 5;
+                        player.EquippedItem = usedItem;
+                        Console.WriteLine("You took out your flashlight");
+                    }
+                    else if (usedItem is Sword sword)
+                    {
+                        sword.Durability -= 5;
+                        player.EquippedItem = usedItem;
+                        Console.WriteLine("You took out you your sword");
+                    }
+                    else if (usedItem is Armor armor)
+                    {
+                        player.Armor += armor.ArmorValue;
+                        player.Inventory.Remove(armor);
+                        Console.WriteLine("You equipped armor");
+                        Thread.Sleep(1000);
+                    }
+                    if (usedItem is Potion potion)
+                    {
+                        if (potion.Type == "Healing")
                         {
-                            flashlight.Charge -= 5;
-                            player.EquippedItem = usedItem;
-                            Console.WriteLine("You took out your flashlight");
-                        }
-                        else if (usedItem is Sword sword)
-                        {
-                            sword.Durability -= 5;
-                            player.EquippedItem = usedItem;
-                            Console.WriteLine("You took out you your sword");
-                        }
-                        else if (usedItem is Armor armor)
-                        {
-                            player.Armor += armor.ArmorValue;
-                            player.Inventory.Remove(armor);
-                            Console.WriteLine("You equipped armor");
-                            Thread.Sleep(1000);
-                        }
-                        if (usedItem is Potion potion)
-                        {
-                            if (potion.Type == "Healing")
-                            {
-                                player.Health += potion.Healing;
-                                player.Inventory.Remove(usedItem);
-                                Console.WriteLine($"You healed for {potion.Healing}");
-                                Thread.Sleep(1200);
-                            }
+                            player.Health += potion.Healing;
+                            player.Inventory.Remove(usedItem);
+                            Console.WriteLine($"You healed for {potion.Healing}");
+                            Thread.Sleep(1200);
                         }
 
                     }
                 }
                 else
                 {
-                    Console.WriteLine("To use a item: use (item name)");
+                    Console.WriteLine("To use a item: use (item number/name)");
                 }
                 foundAction = true;
             }
             else if (input.Length > 5 && input.Substring(0, 5) == "equip")
             {
-                int.TryParse(input.Substring(6), out int num);
-                if (player.GetItemByNum(num) != null)
+                if ((int.TryParse(input.Substring(6), out int num) || player.GetItemByNum(num) != null) || player.GetItemByName(input.Substring(6)) != null)
                 {
+                    Item usedItem;
+                    if (player.GetItemByNum(num) != null)
+                    {
+                        usedItem = player.GetItemByNum(num);
+                    }
+                    else
+                    {
+                        usedItem = player.GetItemByName(input.Substring(6));
+                    }
 
-                    Item usedItem = player.GetItemByNum(num);
                     if (usedItem is Armor armor)
                     {
                         player.Armor += armor.ArmorValue;
@@ -912,7 +925,8 @@ namespace MoriaMines
                 }
                 else
                 {
-                    Console.WriteLine($"Item does not exist");
+                    Console.WriteLine("Could not find item");
+                    Console.WriteLine("To equip a item: equip (item number/name)");
                     Thread.Sleep(600);
                 }
                 foundAction = true;
@@ -1266,16 +1280,20 @@ namespace MoriaMines
             Console.WriteLine();
 
             Console.WriteLine("These are all the commands in the game");
-
+            Console.WriteLine();
+            Console.WriteLine("-(Direction) | Move around using directions (North, East, South, West)");
             Console.WriteLine();
             Console.WriteLine("-Health | Displays health");
             Console.WriteLine("-Gold | Displays current gold");
             Console.WriteLine("-HighScore | Displays your score and all highscores");
+            Console.WriteLine("-Help | Lists all the commands in the game");
             Console.WriteLine();
             Console.WriteLine("-Peek (direction) | See what is in the direction");
-            Console.WriteLine("-Use (Item name) | Equip and use item");
+            Console.WriteLine("-Use (Item number/name) | Use an item");
+            Console.WriteLine("-Equip (Item number/name) | Equip an item");
             Console.WriteLine("-Search | Search the room for hidden items");
-            Console.WriteLine("-Attack | attack the monster in the room");
+            Console.WriteLine("-Attack | Attack the monster in the room");
+            Console.WriteLine("-Inventory | Displays your items along with their number");
             Console.WriteLine();
             Console.WriteLine("-Quit | Ends the game.");
             Console.WriteLine();

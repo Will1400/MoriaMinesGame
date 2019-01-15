@@ -39,11 +39,9 @@ namespace MoriaMines
                 }
             }
             #endregion
-
-
         }
 
-        public Room(string description, int gold, Room west, Room south, Room east, Room north, int darkLevel) : this(description, gold, darkLevel)
+        public Room(string description, int gold, int darkLevel, Room west, Room south, Room east, Room north) : this(description, gold, darkLevel)
         {
             West = west;
             South = south;

@@ -11,8 +11,8 @@ namespace MoriaMines
         private int gold;
         private string name;
         private int health;
-        private Room currentRoom;
         private int roomsVisited = 0;
+        private Room currentRoom;
         private List<Item> inventory = new List<Item>();
         private Item equippedItem;
         private int damage = 6;
@@ -100,6 +100,17 @@ namespace MoriaMines
             }
             return item;
         }
+        public Item GetItemByName(string input)
+        {
+            foreach (Item item in inventory)
+            {
+                if (item.Name.ToLower() == input.ToLower())
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
 
         public Item SearchCurrentRoom()
         {
@@ -116,7 +127,7 @@ namespace MoriaMines
         public int TakeDamage(int damage)
         {
             int damageTaken = damage - armor;
-            if (damageTaken.ToString()[0] == '-')
+            if (damageTaken < 0) //damagetaken < 0 - bonuspoint for kreativitet :)
             {
                 damageTaken = 0;
             }

@@ -8,6 +8,7 @@ using System.IO;
 // Moria Mines
 using MoriaMines.NPCs;
 using MoriaMines.Items;
+using System.Diagnostics;
 
 namespace MoriaMines
 {
@@ -42,12 +43,6 @@ namespace MoriaMines
             CreateNewGame();
         }
 
-        public Game(string gameName, Player player = null, List<Room> rooms = null) : this(gameName)
-        {
-            Player = player;
-            Rooms = rooms;
-        }
-
         public int HighScore
         {
             get { return score; }
@@ -75,15 +70,71 @@ namespace MoriaMines
         #region Create New Game
         private void CreateNewGame()
         {
-            CreateRandomRooms();
+            GetSize(out int main, out int side);
+            Console.WriteLine("Creating map");
+            CreateRandomRooms(main, side);
+            Console.WriteLine("Created map Success");
 
+            Console.WriteLine("Adding items to map");
+            AddItemsToRooms();
+            Console.WriteLine("Adding items to map success");
+
+            Console.WriteLine("Adding monsters to map");
+            AddMonstersToRooms();
+            Console.WriteLine("Adding monsters to map success");
+            Console.Clear();
             AddPlayer();
 
-            AddItemsToRooms();
-
-            AddMonstersToRooms();
-
             RunGame();
+        }
+
+        private void GetSize(out int main, out int side)
+        {
+            while (true)
+            {
+
+                main = 0;
+                side = 0;
+                Console.Clear();
+                Console.WriteLine("Choose map size");
+                Console.WriteLine();
+                Console.WriteLine("-Small");
+                Console.WriteLine("-Normal");
+                Console.WriteLine("-Big");
+                Console.WriteLine("-Extreme");
+                Console.WriteLine();
+                Console.WriteLine("Custom map: (amount of main rooms) (average side room length)");
+
+                string input = GetPlayerInput();
+                switch (input)
+                {
+                    case "small":
+                        main = 6;
+                        side = 2;
+                        return;
+                    case "normal":
+                        main = 10;
+                        side = 5;
+                        return;
+                    case "big":
+                        main = 20;
+                        side = 10;
+                        return;
+                    case "extreme":
+                        main = 50;
+                        side = 20;
+                        return;
+                    default:
+                        if (int.TryParse(input.Split(' ')[0], out main))
+                        {
+                            if (int.TryParse(input.Split(' ')[1], out side))
+                            {
+                                return;
+                            }
+                        }
+                        break;
+                }
+            }
         }
 
         private static Random rnd = new Random();
@@ -92,7 +143,6 @@ namespace MoriaMines
         {
             List<Room> main = new List<Room>();
             List<Room> side = new List<Room>();
-
 
             main.Add(new Room("Entrance ", 0, 0));
 
@@ -184,6 +234,7 @@ namespace MoriaMines
                 {
                     if (rnd.Next(1, 3) == 1)
                     {
+
                         Room mainRoom = main[i];
 
                         // Randomize lenght
@@ -208,96 +259,99 @@ namespace MoriaMines
                             }
 
                             int directionChosen = 0;
-
-                            while (directionChosen == 0 && s < sideRooms.Count)
+                            // Make sure the room is linkable
+                            if (currentSideRoom.North == null || currentSideRoom.West == null || currentSideRoom.South == null || currentSideRoom.East == null)
                             {
-                                switch (rnd.Next(1, 6))
+                                while (directionChosen == 0 && s < sideRooms.Count)
                                 {
-                                    case 1:
+                                    int rndNum = rnd.Next(0, 5);
+
+                                    if (rndNum == 0)
+                                    {
+
                                         if (currentSideRoom.West == null)
                                         {
                                             directionChosen = 1;
                                             currentSideRoom.West = sideRooms[s + 1];
                                             sideRooms[s + 1].East = currentSideRoom;
+                                            break;
                                         }
-                                        break;
-
-                                    case 2:
+                                    }
+                                    else if (rndNum == 1)
+                                    {
                                         if (currentSideRoom.North == null)
                                         {
                                             directionChosen = 2;
                                             currentSideRoom.North = sideRooms[s + 1];
                                             sideRooms[s + 1].South = currentSideRoom;
+                                            break;
                                         }
-                                        break;
-
-                                    case 3:
+                                    }
+                                    else if (rndNum == 2)
+                                    {
                                         if (currentSideRoom.East == null)
                                         {
                                             directionChosen = 3;
                                             currentSideRoom.East = sideRooms[s + 1];
                                             sideRooms[s + 1].West = currentSideRoom;
+                                            break;
                                         }
-                                        break;
-
-                                    case 4:
+                                    }
+                                    else if (rndNum == 3)
+                                    {
                                         if (currentSideRoom.South == null)
                                         {
                                             directionChosen = 4;
                                             currentSideRoom.South = sideRooms[s + 1];
                                             sideRooms[s + 1].North = currentSideRoom;
+                                            break;
                                         }
-                                        break;
-
-                                    case 5:
+                                    }
+                                    else if (rndNum == 4)
+                                    {
                                         // Link to random room
-                                        for (int r = 0; r < 20; r++)
+                                        Room rndRoom = main[rnd.Next(1, rooms.Count)];
+                                        if (rndRoom.North == null)
                                         {
-                                            Room rndRoom = main[rnd.Next(1, rooms.Count)];
-                                            if (rndRoom.North == null)
+                                            if (currentSideRoom.South == null)
                                             {
-                                                if (currentSideRoom.South == null)
-                                                {
-                                                    rndRoom.North = currentSideRoom;
-                                                    currentSideRoom.South = rndRoom;
-                                                    directionChosen = 2;
-                                                    break;
-                                                }
-                                            }
-                                            if (rndRoom.West == null)
-                                            {
-                                                if (currentSideRoom.East == null)
-                                                {
-                                                    rndRoom.West = currentSideRoom;
-                                                    currentSideRoom.East = rndRoom;
-                                                    directionChosen = 11;
-                                                    break;
-                                                }
-                                            }
-                                            if (rndRoom.South == null)
-                                            {
-                                                if (currentSideRoom.North == null)
-                                                {
-                                                    rndRoom.North = currentSideRoom;
-                                                    currentSideRoom.South = rndRoom;
-                                                    directionChosen = 4;
-                                                    break;
-                                                }
-                                            }
-                                            if (rndRoom.East == null)
-                                            {
-                                                if (currentSideRoom.West == null)
-                                                {
-                                                    rndRoom.East = currentSideRoom;
-                                                    currentSideRoom.West = rndRoom;
-                                                    directionChosen = 3;
-                                                    break;
-                                                }
+                                                rndRoom.North = currentSideRoom;
+                                                currentSideRoom.South = rndRoom;
+                                                directionChosen = 2;
+                                                break;
                                             }
                                         }
-                                        break;
-                                    default:
-                                        break;
+                                        if (rndRoom.West == null)
+                                        {
+                                            if (currentSideRoom.East == null)
+                                            {
+                                                rndRoom.West = currentSideRoom;
+                                                currentSideRoom.East = rndRoom;
+                                                directionChosen = 1;
+                                                break;
+                                            }
+                                        }
+                                        if (rndRoom.South == null)
+                                        {
+                                            if (currentSideRoom.North == null)
+                                            {
+                                                rndRoom.North = currentSideRoom;
+                                                currentSideRoom.South = rndRoom;
+                                                directionChosen = 4;
+                                                break;
+                                            }
+                                        }
+                                        if (rndRoom.East == null)
+                                        {
+                                            if (currentSideRoom.West == null)
+                                            {
+                                                rndRoom.East = currentSideRoom;
+                                                currentSideRoom.West = rndRoom;
+                                                directionChosen = 3;
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -370,39 +424,34 @@ namespace MoriaMines
 
         private void AddMonstersToRooms()
         {
-            //Generate monsters
-            List<string> type = new List<string>() { "Dragon", "Orc", "Knight", "Sink" };
+            List<string> monsterType = new List<string>() { "Dragon", "Orc", "Knight", "Sink" };
 
             // Add attacks & place in a room
-            for (int i = 0; i < rooms.Count; i++)
+            for (int i = 0; i < rooms.Count; i += 2)
             {
-                if (i <= 2)
+                if (i >= 2)
                 {
-                }
-                else
-                {
-
                     Room current = rooms[i];
                     if (rnd.Next(0, 4) == 0)
                     {
-                        Monster monster = new Monster(type[rnd.Next(0, type.Count)], rnd.Next(1, 140), rnd.Next(3, 25), "Head");
+                        Monster monster = new Monster(monsterType[rnd.Next(0, monsterType.Count)], rnd.Next(1, 140), rnd.Next(3, 25), "Head");
                         if (monster.Name == "Dragon")
                         {
-                            monster.AddAttack("Hit you with it's tail", 46);
-                            monster.AddAttack("Roared", 12);
-                            monster.AddAttack("Jumped up in the air, and landed on you", 63);
-                            monster.AddAttack("Fired a spike at you", 34);
+                            monster.AddAttack("Hit you with it's tail", rnd.Next(40, 50));
+                            monster.AddAttack("Roared", 10);
+                            monster.AddAttack("Sat on you", rnd.Next(55,65));
+                            monster.AddAttack("Fired a spike at you", rnd.Next(20,35));
                         }
                         else if (monster.Name == "Orc")
                         {
-                            monster.AddAttack("Hit you with it's bat", 21);
-                            monster.AddAttack("Head butted you", 17);
+                            monster.AddAttack("Hit you with it's bat", rnd.Next(19,23));
+                            monster.AddAttack("Head butted you", rnd.Next(20,30));
                             monster.WeaponType = "bat";
                         }
                         else if (monster.Name == "Knight")
                         {
-                            monster.AddAttack("Hit you with their sword", 19);
-                            monster.AddAttack("Charged their sword and hit you", 35);
+                            monster.AddAttack("Hit you with their sword", rnd.Next(17, 25));
+                            monster.AddAttack("Charged their sword and hit you", rnd.Next(35, 43));
                             monster.AddAttack("Bashed into you", 10);
                             monster.WeaponType = "Sword";
                             monster.IsScared = true;
@@ -411,12 +460,9 @@ namespace MoriaMines
                         else if (monster.Name == "Sink")
                         {
                             monster.AddAttack("Fired water at you", 10);
-                            monster.AddAttack("Fired water at you", 10);
-                            monster.AddAttack("Fell off the wall, and destroyed the floor", 90);
-                            monster.AddAttack("Poured water onto the ground", 1);
+                            monster.AddAttack("Fell off the wall, and destroyed the floor", rnd.Next(87, 100));
                             monster.AddAttack("Poured water onto the ground", 1);
                             monster.WeaponType = "Water";
-
                         }
 
                         current.NPC = monster;
@@ -426,19 +472,12 @@ namespace MoriaMines
             }
         }
 
-        private void AddPlayer(Player existingPlayer = null)
+        private void AddPlayer()
         {
             Console.WriteLine("Choose character name");
             Player newPlayer = new Player(100, rooms[0], GetPlayerInput(), 10);
 
-            if (existingPlayer == null)
-            {
-                player = newPlayer;
-            }
-            else
-            {
-                player = existingPlayer;
-            }
+            player = newPlayer;
         }
         #endregion
 

@@ -57,7 +57,6 @@ namespace MoriaMines.NPCs
             try
             {
                 attacks.Add(description, damage);
-
             }
             catch (Exception)
             {
